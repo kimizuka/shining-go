@@ -1,4 +1,4 @@
-module shining-go
+module github.com/kimizuka/shining-go
 
 go 1.24.3
 

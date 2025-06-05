@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Shining Go</title>
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        inset: 0;
+      }
+
+      button {
+        font-size: 32px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <button>ヒカル</button>
+    <script>
+      document.querySelector('button').addEventListener('click', () => {
+        fetch('/api/shining', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }).then((evt) => {
+          console.log(evt);
+        });
+      });
+    </script>
+  </body>
+</html>

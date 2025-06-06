@@ -9,16 +9,31 @@
         justify-content: center;
         position: fixed;
         inset: 0;
+        transition: background .2s ease-in-out;
       }
 
       button {
-        font-size: 32px;
+        width: 96px;
+        height: 96px;
+        font-size: 64px;
         cursor: pointer;
+
+        &:after {
+          content: '💡';
+        }
+      }
+
+      [data-is-on="false"] {
+        background: #212121;
+      }
+
+      [data-is-on="true"] {
+        background: #FAFAFA;
       }
     </style>
   </head>
-  <body>
-    <button>💡</button>
+  <body data-is-on="false">
+    <button></button>
     <script>
       document.querySelector('button').addEventListener('click', () => {
         fetch('/api/shining', {
@@ -26,8 +41,10 @@
           headers: {
             'Content-Type': 'application/json'
           }
-        }).then((evt) => {
-          console.log(evt);
+        }).then(async (res) => {
+          const json = await res.json();
+
+          document.body.dataset.isOn = String(json.isOn);
         });
       });
     </script>

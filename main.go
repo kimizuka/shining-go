@@ -4,14 +4,24 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/akualab/dmx"
 )
 
-var timer *time.Timer
+var isOn bool
 
-func shining() {
+func offLight() {
+	dmx, err := dmx.NewDMXConnection("/dev/tty.usbserial-EN437503")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dmx.SetChannel(2, 0)
+	dmx.Render()
+	dmx.Close()
+}
+
+func onLight() {
 	dmx, err := dmx.NewDMXConnection("/dev/tty.usbserial-EN437503")
 	if err != nil {
 		log.Fatal(err)
@@ -19,39 +29,28 @@ func shining() {
 
 	dmx.SetChannel(2, 100)
 	dmx.Render()
-
-	if timer != nil {
-		timer.Stop()
-	}
-
-	timer = time.AfterFunc(1*time.Second, func() {
-		dmx.SetChannel(2, 0)
-		dmx.Render()
-		dmx.Close()
-	})
+	dmx.Close()
 }
 
 func shiningGetHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	switch r.Method {
-	case http.MethodGet:
-		response := struct {
-			Message string `json:"message"`
-		}{
-			Message: "GET",
-		}
-
-		json.NewEncoder(w).Encode(response)
-
 	case http.MethodPost:
-		response := struct {
-			Message string `json:"message"`
-		}{
-			Message: "POST",
+		if !isOn {
+			isOn = true
+			onLight()
+		} else {
+			isOn = false
+			offLight()
 		}
 
-		shining()
+		response := struct {
+			IsOn bool `json:"isOn"`
+		}{
+			IsOn: isOn,
+		}
+
 		json.NewEncoder(w).Encode(response)
 	}
 }

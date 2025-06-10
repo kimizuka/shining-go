@@ -7,44 +7,52 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        gap: 16px;
         position: fixed;
         inset: 0;
         transition: background .2s ease-in-out;
+
+        &[data-level="0"] {
+          background: #212121;
+        }
+
+        &[data-level="50"] {
+          background: #BDBDBD;
+        }
+
+        &[data-level="100"] {
+          background: #FAFAFA;
+        }
       }
 
       button {
         width: 96px;
         height: 96px;
-        font-size: 64px;
+        font-size: 48px;
         cursor: pointer;
-
-        &:after {
-          content: '💡';
-        }
-      }
-
-      [data-is-on="false"] {
-        background: #212121;
-      }
-
-      [data-is-on="true"] {
-        background: #FAFAFA;
       }
     </style>
   </head>
-  <body data-is-on="false">
-    <button></button>
+  <body data-level="0">
+    <button data-level="0">0</button>
+    <button data-level="50">50</button>
+    <button data-level="100">100</button>
     <script>
-      document.querySelector('button').addEventListener('click', () => {
-        fetch('/api/shining', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }).then(async (res) => {
-          const json = await res.json();
+      [].slice.call(document.querySelectorAll('[data-level]')).forEach((elm) => {
+        elm.addEventListener('click', (evt) => {
+          const level = Number(evt.target.dataset.level || 0);
 
-          document.body.dataset.isOn = String(json.isOn);
+          fetch('/api/shining', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ level })
+          }).then(async (res) => {
+            const json = await res.json();
+
+            document.body.dataset.level = String(json.level);
+          });
         });
       });
     </script>

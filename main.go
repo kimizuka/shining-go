@@ -8,26 +8,13 @@ import (
 	"github.com/akualab/dmx"
 )
 
-var isOn bool
-
-func offLight() {
+func onLight(level int) {
 	dmx, err := dmx.NewDMXConnection("/dev/tty.usbserial-EN437503")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dmx.SetChannel(2, 0)
-	dmx.Render()
-	dmx.Close()
-}
-
-func onLight() {
-	dmx, err := dmx.NewDMXConnection("/dev/tty.usbserial-EN437503")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	dmx.SetChannel(2, 100)
+	dmx.SetChannel(2, byte(level))
 	dmx.Render()
 	dmx.Close()
 }
@@ -37,18 +24,25 @@ func shiningGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodPost:
-		if !isOn {
-			isOn = true
-			onLight()
-		} else {
-			isOn = false
-			offLight()
+		var request struct {
+			Level int `json:"level"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
+			return
 		}
 
+		if request.Level < 0 || 100 < request.Level {
+			http.Error(w, "Level must be between 0 and 100", http.StatusBadRequest)
+			return
+		}
+
+		onLight(request.Level)
+
 		response := struct {
-			IsOn bool `json:"isOn"`
+			Level int `json:"level"`
 		}{
-			IsOn: isOn,
+			Level: request.Level,
 		}
 
 		json.NewEncoder(w).Encode(response)
